@@ -41,4 +41,4 @@ int main()
 ```
 
 <br>
-![full](./images/poc.png)
+![full](https://github.com/lucid78/pwntoolscpp/blob/main/images/poc.png)
