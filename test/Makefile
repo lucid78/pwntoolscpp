@@ -9,8 +9,9 @@ $(TARGET): $(OBJS)
 	$(GCC) -Wl,-rpath,../ -O1 -o $(TARGET) main.o  -L. -L../ -lpwntoolscpp -lpthread
 
 main.o : main.cpp
-	$(GCC) $(CFLAGS) -o main.o main.cpp -I.
+	$(GCC) $(CFLAGS) -o main.o main.cpp -I. -I../
 
 clean:
 	rm -f *.o *.core *~
 	rm -f $(TARGET)
+

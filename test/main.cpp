@@ -1,13 +1,15 @@
 
 #include <iostream>
+
 #include "../process.h"
 #include "../utility.h"
-
+#include "../elf.h"
 
 int main()
 {
     try
     {
+        /* lab3
         PROCESS p{"/tmp/hitcon/LAB/lab3/ret2sc"};
         std::cout << p.recv_until(":");
 
@@ -26,6 +28,9 @@ int main()
         
         p.send_line(payload);
         p.interactive();
+        */
+
+       ELF elf{"/tmp/hitcon/LAB/lab4/ret2lib"};
     }
     catch (std::exception& e)
     {
