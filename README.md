@@ -39,3 +39,6 @@ int main()
         std::cerr << "Exception: " << __FUNCTION__ << " " << e.what() << "\n";
     }
 ```
+
+<br>
+![full](https://lucid78.github.io/assets/images/poc.png)
