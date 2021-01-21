@@ -41,4 +41,4 @@ int main()
 ```
 
 <br>
-![full](https://lucid78.github.io/assets/images/poc.png)
+![full](./images/poc.png)
