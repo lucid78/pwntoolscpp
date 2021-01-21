@@ -40,5 +40,4 @@ int main()
     }
 ```
 
-<br>
 ![full](https://github.com/lucid78/pwntoolscpp/blob/main/images/poc.png)
