@@ -36,6 +36,11 @@ PROCESS::~PROCESS()
     c.terminate();
 }
 
+const std::string recv_line()
+{
+    return recv_until("\n");
+}
+
 const std::string PROCESS::recv_until(const std::string& delim)
 {
     std::string str;

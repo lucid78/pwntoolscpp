@@ -30,6 +30,7 @@ public:
     PROCESS(const std::string& _path, const std::vector<std::string>& args);
     ~PROCESS();
 
+    const std::string recv_line();
     const std::string recv_until(const std::string& delim);
     size_t send(const std::string& data);
     size_t send_line(const std::string& data);

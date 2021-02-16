@@ -22,3 +22,14 @@ const std::string UTILITY::p32(const int& number)
     return conv_ascii((boost::format("%x") % reversed).str());
 }
 
+const std::string hex(const int& addr)
+{
+    std::stringstream stream;
+    stream << "0x" << std::setw(8) << std::setfill('0') << std::hex << addr;
+    return stream.str();
+}
+
+const std::string str(const int& num)
+{
+    return std::to_string(num);
+}
