@@ -6,6 +6,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+
 #include <boost/process.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
@@ -24,6 +25,7 @@ private:
 
     std::recursive_mutex lock;
     const int buffer_length{4096};
+    boost::asio::streambuf m_buf;
 
 public:
     PROCESS(const std::string& _path);

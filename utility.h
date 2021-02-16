@@ -2,6 +2,8 @@
 #define UTILITY_H
 
 #pragma once
+#include <sstream>
+#include <iomanip>
 
 #include <boost/endian/buffers.hpp>
 #include <boost/format.hpp>

@@ -36,7 +36,7 @@ PROCESS::~PROCESS()
     c.terminate();
 }
 
-const std::string recv_line()
+const std::string PROCESS::recv_line()
 {
     return recv_until("\n");
 }
@@ -44,16 +44,14 @@ const std::string recv_line()
 const std::string PROCESS::recv_until(const std::string& delim)
 {
     std::string str;
-    boost::asio::streambuf buf;
-    buf.prepare(buffer_length);
-    if(const auto size{boost::asio::read_until(output, buf, delim, ec)}; size != 0)
+    if(const auto size{boost::asio::read_until(output, m_buf, delim, ec)}; size != 0)
     {
         if(ec && ec != boost::asio::error::eof)
         {
             throw boost::system::system_error(ec);
         }
-        str += buffer_to_string(buf, size);
-        buf.consume(size);
+        str += buffer_to_string(m_buf, size);
+        m_buf.consume(size);
     }
     return str;
 }
@@ -100,6 +98,7 @@ void PROCESS::interactive()
 
 void PROCESS::init()
 {
+    m_buf.prepare(buffer_length);
     std::cout << "[*] Starting process... pid is " << std::to_string(c.id()) << std::endl;
     // read_at_once();
     io.run();

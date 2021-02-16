@@ -224,6 +224,7 @@ public:
     std::string get_canary();
     std::string get_nx();
     std::string get_pie();
+    int got(const std::string& name);
 
 private:
     void get_symbols();
