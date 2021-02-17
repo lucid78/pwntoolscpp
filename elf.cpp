@@ -141,30 +141,6 @@ std::string ELF::get_pie()
 
 void ELF::get_symbols()
 {
-    // for(ELFIO::Elf_Half i = 0; i < reader.sections.size(); ++i)
-    // {
-    //     ELFIO::section* sec = reader.sections[i];
-    //     if(SHT_SYMTAB == sec->get_type() || SHT_DYNSYM == sec->get_type())
-    //     {
-    //         ELFIO::symbol_section_accessor symbol(reader, sec);
-    //         for(ELFIO::Elf_Xword i = 0; i < symbol.get_symbols_num(); ++i)
-    //         {
-    //             std::string name;
-    //             ELFIO::Elf64_Addr value{0};
-    //             ELFIO::Elf_Xword  size{0};
-    //             unsigned char bind{0};
-    //             unsigned char type{0};
-    //             ELFIO::Elf_Half section{0};
-    //             unsigned char other{0};
-    //             symbol.get_symbol(i, name, value, size, bind, type, section, other);
-    //             if(!name.empty())
-    //             {
-    //                 symbols.emplace(name, value);
-    //             }
-    //         }
-    //     }
-    // }   // end of for
-
     std::unordered_map<std::string, ELFIO::Elf64_Addr> relocations;
     for(ELFIO::Elf_Half i = 0; i < reader.sections.size(); ++i)
     {
