@@ -8,6 +8,13 @@
 #include "elfio/elfio_dump.hpp"
 #include "elfio/elf_types.hpp"
 
+struct FUNCTION
+{
+    std::string name;
+    ELFIO::Elf64_Addr addr{0};
+    ELFIO::Elf_Xword size{0};
+};
+
 class ELF
 {
 private:
@@ -216,16 +223,32 @@ private:
         { ELFDATA2LSB, "Little endian" },
         { ELFDATA2MSB, "Big endian" }
     };
-    std::unordered_map<std::string, ELFIO::Elf64_Addr> symbols;
+    std::unordered_map<std::string, ELFIO::Elf64_Addr> m_symbols;
+    std::unordered_map<std::string, FUNCTION> m_functions;
+    std::unordered_map<std::string, ELFIO::Elf64_Addr> m_gots;
+    std::unordered_map<std::string, ELFIO::Elf64_Addr> m_plts;
+    std::string m_pie;
+    std::string m_relro;
+    std::string m_canary;
+    std::string m_nxbit;
+    ELFIO::Elf64_Addr m_ep;
+    ELFIO::Elf64_Addr m_vaddr;
+
 
 public:
     ELF(const std::string& path);
-    std::string get_relro();
-    std::string get_canary();
-    std::string get_nx();
-    std::string get_pie();
+    
     int got(const std::string& name);
+    void got();
+    int plt(const std::string& name);
+    void plt();
+    int symbols(const std::string& name);
+    void symbols();
+    void address();
+    const std::string hex(const int& addr);
+    void functions();
 
 private:
-    void get_symbols();
+    void parse_elf();
+    void check_sec();
 };
