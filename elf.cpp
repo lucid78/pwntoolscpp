@@ -8,28 +8,15 @@ ELF::ELF(const std::string& path) : m_path(path)
         std::cerr << "Can't find or process ELF file " << path << std::endl;
         exit(-1);
     }
-   
-    // ELFIO::dump::header( std::cout, reader );
-    // ELFIO::dump::section_headers( std::cout, reader );
-    // ELFIO::dump::segment_headers( std::cout, reader );
-    // ELFIO::dump::symbol_tables( std::cout, reader );
-    // ELFIO::dump::notes( std::cout, reader );
-    // ELFIO::dump::modinfo( std::cout, reader );
-    // ELFIO::dump::dynamic_tags( std::cout, reader );
-    // ELFIO::dump::section_datas( std::cout, reader );
-    // ELFIO::dump::segment_datas( std::cout, reader );
-
     parse_elf();
     check_sec();
 }
 
-
-
-int ELF::got(const std::string& name)
+int ELF::got(const std::string& name) const
 {
     if(m_gots.find(name) != m_gots.end())
     {
-        return m_gots[name];
+        return m_gots.at(name);
     }
     return 0;
 }
@@ -44,11 +31,11 @@ void ELF::got()
     }
 }
 
-int ELF::plt(const std::string& name)
+int ELF::plt(const std::string& name) const
 {
     if(m_plts.find(name) != m_plts.end())
     {
-        return m_plts[name];
+        return m_plts.at(name);
     }
     return 0;
 }
@@ -63,21 +50,13 @@ void ELF::plt()
     }
 }
 
-int ELF::symbols(const std::string& name)
+int ELF::symbols(const std::string& name) const
 {
     if(m_symbols.find(name) != m_symbols.end())
     {
-        return m_symbols[name];
+        return m_symbols.at(name);
     }
     return 0;
-
-    // const auto& width{reader.get_class() == ELFCLASS32 ? 8 : 16};
-    // for(const auto& [name, addr] : m_symbols)
-    // {
-    //     std::stringstream stream;
-    //     stream << name << std::setw(40 - name.length()) << "0x" << std::setw(width) << std::setfill('0') << std::hex << addr;
-    //     std::cout << stream.str() << std::endl;
-    // }
 }
 
 void ELF::symbols()
@@ -86,14 +65,14 @@ void ELF::symbols()
     for(const auto& [name, addr] : m_symbols)
     {
         std::stringstream stream;
-        stream << name << std::setw(40 - name.length()) << "0x" << std::setw(width) << std::setfill('0') << std::hex << addr;
+        stream << name << std::setw(50 - name.length()) << "0x" << std::setw(width) << std::setfill('0') << std::hex << addr;
         std::cout << stream.str() << std::endl;
     }
 }
 
 void ELF::address()
 {
-    std::cout  << "0x" << std::hex << reader.get_entry() << std::endl;
+    std::cout  << hex(m_vaddr) << std::endl;
 }
 
 const std::string ELF::hex(const int& addr)
@@ -105,7 +84,6 @@ const std::string ELF::hex(const int& addr)
 
 void ELF::functions()
 {
-    // const auto& width{reader.get_class() == ELFCLASS32 ? 8 : 16};
     for(const auto& [name, func] : m_functions)
     {
         std::stringstream stream;
@@ -132,13 +110,12 @@ void ELF::check_sec()
     std::cout << "    RELRO:    " << m_relro << std::endl;
     std::cout << "    Stack:    " << m_canary << std::endl;
     std::cout << "    NX:       " << m_nxbit << std::endl;
-    std::cout << "    PIE:      " << m_pie << std::endl;
+    std::cout << "    PIE:      " << m_pie << " (" << hex(m_vaddr) << ")" << std::endl;
 }
 
 void ELF::parse_elf()
 {
     if(ET_EXEC == reader.get_type()){m_pie = "No PIE";}
-    else {m_pie = "Not ELF file";}
 
     // search segment headers
     for(ELFIO::Elf_Half i{0}; i < reader.segments.size(); ++i)
@@ -176,6 +153,7 @@ void ELF::parse_elf()
     // search dynamic sections
     bool find{false};
     std::unordered_map<std::string, ELFIO::Elf64_Addr> relocations;
+    std::unordered_map<int, std::string> symbols;
     for(ELFIO::Elf_Half i{0}; i < reader.sections.size(); ++i)
     {
         ELFIO::section* sec = reader.sections[i];
@@ -206,7 +184,7 @@ void ELF::parse_elf()
             break;
         }
         case SHT_SYMTAB:
-        case SHT_DYNSYM:
+        case SHT_DYNSYM:    // save symbol table
         {
             ELFIO::symbol_section_accessor symbol(reader, sec);
             for(ELFIO::Elf_Xword i = 0; i < symbol.get_symbols_num(); ++i)
@@ -219,6 +197,7 @@ void ELF::parse_elf()
                 ELFIO::Elf_Half section{0};
                 unsigned char other{0};
                 symbol.get_symbol(i, name, value, size, bind, type, section, other);
+                symbols.emplace(i, name);
                 // std::cout << i << " => [name:" << name << "],[value:" << value << "],[size:" << size << "],[bind:" << (int)bind << "],[type:" << (int)type << "],[section:" << section << "],[other:" << other << "]" << std::endl;
                 if(!name.empty())
                 {
@@ -245,7 +224,10 @@ void ELF::parse_elf()
                 std::string symbolName;
                 reloc.get_entry(i, offset, info, symbol, type, symbolName);
                 relocations.emplace(symbolName, offset);
-                m_plts.emplace(symbolName, plt_vma_address + (i + 1) * plt_entry_size);
+                if(!sec->get_name().compare(".rel.plt"))
+                {
+                    m_plts.emplace(symbolName, plt_vma_address + (i + 1) * plt_entry_size);
+                }
             }
             break;
         }
@@ -267,9 +249,8 @@ void ELF::parse_elf()
         }
     }
 
-    static const ELFIO::Elf_Xword MAX_DATA_ENTRIES{64};
+    const ELFIO::Elf_Xword MAX_DATA_ENTRIES{64};
     const auto& width{reader.get_class() == ELFCLASS32 ? 4 : 8};
-    #define DUMP_HEX_FORMAT( width ) std::setw( width ) << std::setfill( '0' ) << std::hex << std::right
     for(ELFIO::Elf_Half i{0}; i < reader.sections.size(); ++i)
     {
         ELFIO::section* sec = reader.sections[i];
@@ -278,58 +259,29 @@ void ELF::parse_elf()
             if(const char* pdata{sec->get_data()}; pdata)
             {
                 // 4byte씩 읽기
-                std::cout << "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << std::endl;
-                for(ELFIO::Elf_Xword j{0}; j < std::min(sec->get_size(), MAX_DATA_ENTRIES); ++j)
+                for(ELFIO::Elf_Xword j{0}; j < std::min(sec->get_size(), MAX_DATA_ENTRIES); j += 3)
                 {
-                    // char addr[4] = {0};
-                    // memcpy(addr, &pdata + j, 4);
-                    // std::cout << "0x" << std::hex << addr << std::endl;
 
+                    int addr{0};
+                    memcpy(&addr, pdata + j, width);
+                    j += width;
 
-                    // std::cout << " " << DUMP_HEX_FORMAT( 2 ) << ( pdata[j] & 0x000000FF );
-                    std::stringstream stream;
-                    stream << std::setw(2) << std::setfill('0') << "0x" << pdata[j];
-                    std::cout << stream.str() << std::endl;
+                    char type{0};
+                    memcpy(&type, pdata + j, 1);
+                    j+=1;
+
+                    char idx{0};
+                    memcpy(&idx, pdata + j, 1);
+
+                    if(const auto& it{symbols.find(int(idx))}; it != symbols.end())
+                    {
+                        m_gots.emplace(it->second, addr);
+                    }
                 }
-                std::cout << "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << std::endl;
-                std::cout << sec->get_name() << " " << sec->get_address() << std::endl;
-                m_gots.emplace(sec->get_name(), sec->get_address());
             }
             break;
         }
     }   // end of for
-
-
-
-
-    // ELFIO::Elf_Half n = reader.sections.size();
-    // for ( ELFIO::Elf_Half i = 1; i < n; ++i ) { // For all sections
-    //     ELFIO::section* sec = reader.sections[i];
-    //     if ( sec->get_type() == SHT_NOBITS ) {
-    //         continue;
-    //     }
-    //     if(sec->get_name().compare(".rel.plt")) {continue;}
-    //     std::cout << sec->get_name() << std::endl;
-    //     const char* pdata = sec->get_data();
-    //     if ( pdata ) {
-    //         ELFIO::Elf_Xword i;
-    //         for ( i = 0; i < std::min( sec->get_size(), MAX_DATA_ENTRIES ); ++i ) {
-                
-    //             std::cout << " " << DUMP_HEX_FORMAT( 2 ) << ( pdata[i] & 0x000000FF );
-
-                
-    //         }
-            
-    //             std::cout << std::endl;
-            
-    //     }
-    // }
-
-
-
-
-
-
 
     for(const auto& [symbol, addr] : m_symbols)
     {
@@ -340,5 +292,3 @@ void ELF::parse_elf()
         }
     }
 }
-
-

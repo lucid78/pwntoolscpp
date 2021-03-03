@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <string>
@@ -227,22 +226,22 @@ private:
     std::unordered_map<std::string, FUNCTION> m_functions;
     std::unordered_map<std::string, ELFIO::Elf64_Addr> m_gots;
     std::unordered_map<std::string, ELFIO::Elf64_Addr> m_plts;
-    std::string m_pie;
-    std::string m_relro;
-    std::string m_canary;
-    std::string m_nxbit;
-    ELFIO::Elf64_Addr m_ep;
-    ELFIO::Elf64_Addr m_vaddr;
+    std::string m_pie{"Not ELF file"};
+    std::string m_relro{"No RELRO"};
+    std::string m_canary{"No canary found"};
+    std::string m_nxbit{"NX disabled"};
+    ELFIO::Elf64_Addr m_ep{0};
+    ELFIO::Elf64_Addr m_vaddr{0};
 
 
 public:
     ELF(const std::string& path);
     
-    int got(const std::string& name);
+    int got(const std::string& name) const;
     void got();
-    int plt(const std::string& name);
+    int plt(const std::string& name) const;
     void plt();
-    int symbols(const std::string& name);
+    int symbols(const std::string& name) const;
     void symbols();
     void address();
     const std::string hex(const int& addr);
