@@ -187,7 +187,7 @@ void ELF::parse_elf()
         case SHT_DYNSYM:    // save symbol table
         {
             ELFIO::symbol_section_accessor symbol(reader, sec);
-            for(ELFIO::Elf_Xword i = 0; i < symbol.get_symbols_num(); ++i)
+            for(ELFIO::Elf_Xword i{0}; i < symbol.get_symbols_num(); ++i)
             {
                 std::string name;
                 ELFIO::Elf64_Addr value{0};
@@ -198,7 +198,6 @@ void ELF::parse_elf()
                 unsigned char other{0};
                 symbol.get_symbol(i, name, value, size, bind, type, section, other);
                 symbols.emplace(i, name);
-                // std::cout << i << " => [name:" << name << "],[value:" << value << "],[size:" << size << "],[bind:" << (int)bind << "],[type:" << (int)type << "],[section:" << section << "],[other:" << other << "]" << std::endl;
                 if(!name.empty())
                 {
                     m_symbols.emplace(name, value);
@@ -250,7 +249,6 @@ void ELF::parse_elf()
     }
 
     const ELFIO::Elf_Xword MAX_DATA_ENTRIES{64};
-    const auto& width{reader.get_class() == ELFCLASS32 ? 4 : 8};
     for(ELFIO::Elf_Half i{0}; i < reader.sections.size(); ++i)
     {
         ELFIO::section* sec = reader.sections[i];
@@ -258,13 +256,11 @@ void ELF::parse_elf()
         {
             if(const char* pdata{sec->get_data()}; pdata)
             {
-                // 4byte씩 읽기
                 for(ELFIO::Elf_Xword j{0}; j < std::min(sec->get_size(), MAX_DATA_ENTRIES); j += 3)
                 {
-
                     int addr{0};
-                    memcpy(&addr, pdata + j, width);
-                    j += width;
+                    memcpy(&addr, pdata + j, 4);
+                    j += 4;
 
                     char type{0};
                     memcpy(&type, pdata + j, 1);

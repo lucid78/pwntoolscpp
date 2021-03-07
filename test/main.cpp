@@ -36,21 +36,20 @@ int main()
         //
         // lab4
         //
-        UTILITY util;
+        
         // PROCESS p("/tmp/hitcon/LAB/lab4/ret2lib");
         ELF e{"/tmp/hitcon/LAB/lab4/ret2lib"};
-        e.symbols();
-        std::cout << "================= got ======================" << std::endl;
+        
+        std::cout << "\n[got]" << std::endl;
         e.got();
-        std::cout << std::endl;
-        std::cout << std::endl;
-        std::cout << "======================= plt ========================" << std::endl;
+        std::cout << "\n[plt]" << std::endl;
         e.plt();
-
+        std::cout << "\n[function]" << std::endl;
+        e.functions();
         
         
         
-        
+        // UTILITY util;
         // const int puts_got{e.got("puts")};
         // std::cout << "[*] found address of puts got : " << util.hex(puts_got) << std::endl;
 
